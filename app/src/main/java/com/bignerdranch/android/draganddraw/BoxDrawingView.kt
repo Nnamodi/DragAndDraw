@@ -45,7 +45,7 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
                     boxen.add(it)
                 }
                 // Remember where we started
-                lastTouchX = event.x ; lastTouchY = event.y
+                lastTouchX = current.x ; lastTouchY = current.y
                 // Save the ID of this pointer
                 activePointerId = event.getPointerId(0)
             }
@@ -53,15 +53,15 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
                 action = "ACTION_MOVE"
                 // Find the index of the active pointer and fetch its position
                 val pointerIndex = event.findPointerIndex(activePointerId)
-                val x = event.getX(pointerIndex)
-                val y = event.getY(pointerIndex)
+                current.x = event.getX(pointerIndex)
+                current.y = event.getY(pointerIndex)
                 // Calculate the distance moved
-                val dx = x - lastTouchX
-                val dy = y - lastTouchY
+                val dx = current.x - lastTouchX
+                val dy = current.y - lastTouchY
                 // Move the object
                 posX += dx ; posY += dy
                 // Remember this touch position for the next move event
-                lastTouchX = x ; lastTouchY = y
+                lastTouchX = current.x ; lastTouchY = current.y
                 updateCurrentBox(current)
             }
             MotionEvent.ACTION_UP -> {
