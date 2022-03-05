@@ -12,8 +12,6 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 
-private const val INVALID_POINTER_ID = -1
-
 class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(context, attr) {
     private var currentBox: Box? = null
     private val boxen = mutableListOf<Box>()
@@ -24,10 +22,11 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
         color = 0xfff8efe0.toInt()
     }
     private var boxes = this.id
-    private var posX = 0.0f ; private var posY = 0.0f
     private var lastTouchX = 0.0f ; private var lastTouchY = 0.0f
+    private var degree = 0.0f
+    private var downTouch = false
     // The 'active pointer' is the one currently moving our object.
-    private var activePointerId = INVALID_POINTER_ID
+    private var activePointerId = -1
 
     init {
         isSaveEnabled = true
@@ -44,6 +43,7 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
                 currentBox = Box(current).also {
                     boxen.add(it)
                 }
+                degree = 0.0f
                 // Remember where we started
                 lastTouchX = current.x ; lastTouchY = current.y
                 // Save the ID of this pointer
@@ -51,15 +51,11 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
             }
             MotionEvent.ACTION_MOVE -> {
                 action = "ACTION_MOVE"
+                if (downTouch) degree++
                 // Find the index of the active pointer and fetch its position
                 val pointerIndex = event.findPointerIndex(activePointerId)
                 current.x = event.getX(pointerIndex)
                 current.y = event.getY(pointerIndex)
-                // Calculate the distance moved
-                val dx = current.x - lastTouchX
-                val dy = current.y - lastTouchY
-                // Move the object
-                posX += dx ; posY += dy
                 // Remember this touch position for the next move event
                 lastTouchX = current.x ; lastTouchY = current.y
                 updateCurrentBox(current)
@@ -68,14 +64,24 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
                 action = "ACTION_UP"
                 updateCurrentBox(current)
                 currentBox = null
-                activePointerId = INVALID_POINTER_ID
+                activePointerId = -1
             }
             MotionEvent.ACTION_CANCEL -> {
                 action = "ACTION_CANCEL"
                 currentBox = null
-                activePointerId = INVALID_POINTER_ID
+                activePointerId = -1
+            }
+            MotionEvent.ACTION_POINTER_DOWN -> {
+                action = "ACTION_POINTER_DOWN"
+                downTouch = true
+                val actionIndex = event.actionIndex
+                current.x = event.getX(actionIndex) ; current.y = event.getY(actionIndex)
+                // Remember this touch position for the next move event
+                lastTouchX = current.x ; lastTouchY = current.y
             }
             MotionEvent.ACTION_POINTER_UP -> {
+                action = "ACTION_POINTER_UP"
+                downTouch = false
                 // Extract the index of the pointer that left the touch sensor
                 val pointerIndex = (event.action and MotionEvent.ACTION_POINTER_INDEX_MASK) shr MotionEvent.ACTION_POINTER_INDEX_SHIFT
                 val pointerId = event.getPointerId(pointerIndex)
@@ -88,19 +94,18 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
                 }
             }
         }
-        Log.i("BoxDrawView", "$action at x = ${current.x}, y = ${current.y}")
+        Log.i("BoxDrawView", "$action at x = ${current.x}, y = ${current.y} and rotated to $degree")
         return true
     }
 
     override fun onDraw(canvas: Canvas) {
         // Fill the background
         canvas.drawPaint(backgroundPaint)
-        canvas.save()
-        canvas.translate(posX, posY)
-        canvas.restore()
-
         boxen.forEach { box ->
+            canvas.save()
+            canvas.rotate(degree)
             canvas.drawRect(box.left, box.top, box.right, box.bottom, boxPaint)
+            canvas.restore()
         }
     }
 
