@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">DragAndDraw</string>
+    <string name="no_boxes_drawn">No boxes drawn yet! Hold down two fingers to draw a box.</string>
+    <string name="drawn_box_location">Box drawn at %1f and %2f on canvas</string>
 </resources>

@@ -22,6 +22,9 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
         color = 0xfff8efe0.toInt()
     }
     private var boxes = this.id
+    private val description = this.apply {
+        contentDescription = context.getString(R.string.no_boxes_drawn)
+    }
     private var lastTouchX = 0.0f ; private var lastTouchY = 0.0f
     private var degree = 0.0f
     private var downTouch = false
@@ -36,6 +39,7 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val current = PointF(event.x, event.y)
         var action = ""
+        var text = ""
         when (event.action and MotionEvent.ACTION_MASK) {
             MotionEvent.ACTION_DOWN -> {
                 action = "ACTION_DOWN"
@@ -62,9 +66,11 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
             }
             MotionEvent.ACTION_UP -> {
                 action = "ACTION_UP"
+                text = context.getString(R.string.drawn_box_location, current.x, current.y)
                 updateCurrentBox(current)
                 currentBox = null
                 activePointerId = -1
+                description
             }
             MotionEvent.ACTION_CANCEL -> {
                 action = "ACTION_CANCEL"
@@ -94,6 +100,7 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
                 }
             }
         }
+        this.contentDescription = text
         Log.i("BoxDrawView", "$action at x = ${current.x}, y = ${current.y} and rotated to $degree")
         return true
     }
