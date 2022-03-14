@@ -21,7 +21,6 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
     private val backgroundPaint = Paint().apply {
         color = 0xfff8efe0.toInt()
     }
-    private var boxes = this.id
     private val description = this.apply {
         contentDescription = context.getString(R.string.no_boxes_drawn)
     }
@@ -66,7 +65,11 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
             }
             MotionEvent.ACTION_UP -> {
                 action = "ACTION_UP"
-                text = context.getString(R.string.drawn_box_location, current.x, current.y)
+                text = if (boxen.size == 1) {
+                    context.getString(R.string.drawn_box, current.x, current.y)
+                } else {
+                    context.getString(R.string.drawn_boxes, current.x, current.y, boxen.size)
+                }
                 updateCurrentBox(current)
                 currentBox = null
                 activePointerId = -1
@@ -101,7 +104,7 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
             }
         }
         this.contentDescription = text
-        Log.i("BoxDrawView", "$action at x = ${current.x}, y = ${current.y} and rotated to $degree")
+        Log.i("BoxDrawView", "$action at x = ${current.x}, y = ${current.y} and rotated to $degree.")
         return true
     }
 
@@ -119,7 +122,6 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
     override fun onSaveInstanceState(): Parcelable {
         val superState = super.onSaveInstanceState()
         val bundle = Bundle()
-        bundle.putInt("points", boxes)
         bundle.putParcelable("superState", superState)
         Log.d("SavedState", "$bundle")
         return bundle
@@ -128,10 +130,9 @@ class BoxDrawingView(context: Context, attr: AttributeSet? = null) : View(contex
     override fun onRestoreInstanceState(state: Parcelable?) {
         var view = state
         if (view is Bundle) {
-            boxes = view.getInt("points")
             view = view.getParcelable("superState")
         }
-        Log.d("SavedState", "$view, $boxes")
+        Log.d("SavedState", "$view")
         super.onRestoreInstanceState(view)
     }
 
